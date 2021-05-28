@@ -1,4 +1,5 @@
-# python main.py
+# gunicorn -w 1 -b 0.0.0.0:8087 main:server --chdir ./app
+# worker must be one
 
 import dash
 from dash.dependencies import Output, Input
@@ -18,8 +19,10 @@ Y.append(1)
 
 
 app = dash.Dash(__name__)
+server = app.server
+
 app.layout = html.Div(children=[
-    html.H1('Hello GL20'),
+    html.H1('Hello GL200'),
 
     html.Div(
     [
@@ -27,12 +30,14 @@ app.layout = html.Div(children=[
         dcc.Graph(id='live-graph', animate=True),
         dcc.Interval(
             id='graph-update',
-            interval=1*1000
+            interval=1*1000,
+            n_intervals=0
         ),
     ]
     )
 
 ])
+
 
 
 @app.callback(Output('live-graph', 'figure'),
@@ -41,6 +46,7 @@ def update_graph_scatter(input_data, in_address):
     in_address = "172.16.10.250:8000" if in_address == None else in_address
     X.append(X[-1]+1)
     Y.append(float(requests.get("http://"+in_address+"/api/built-in/psutil/CPU/cpu_percent?percpu=false").text))
+    # Y.append(random.random())
 
     data = plotly.graph_objs.Scatter(
             x=list(X),
@@ -54,4 +60,5 @@ def update_graph_scatter(input_data, in_address):
 
 
 if __name__ == '__main__':
-    app.run_server(host='0.0.0.0', port=8082, debug=True)
+    # app.run_server(host='0.0.0.0', port=8082, debug=True)
+    app.run_server(debug=True)
